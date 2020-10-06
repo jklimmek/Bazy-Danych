@@ -1,0 +1,101 @@
+1. CREATE DATABASE s298251
+
+
+2. CREATE SCHEMA firma
+
+
+3. CREATE ROLE ksiegowosc;
+   GRANT USAGE ON SCHEMA firma TO ksiegowosc;
+   GRANT SELECT ON ALL TABLES IN SCHEMA firma TO ksiegowosc;
+
+
+4. CREATE TABLE pracownicy(id_pracownika SERIAL, 
+			imie VARCHAR NOT NULL, 
+			nazwisko VARCHAR NOT NULL, 
+			adres VARCHAR NOT NULL, 
+			telefon VARCHAR);
+
+   CREATE TABLE godziny(id_godziny SERIAL, 
+			data DATE NOT NULL, 
+			liczba_godzin INTEGER NOT NULL, 
+			id_pracownika INTEGER NOT NULL);
+
+   CREATE TABLE pensja_stanowisko(id_pensji SERIAL, 
+			stanowisko VARCHAR NOT NULL, 
+			kwota NUMERIC(6, 2));
+
+   CREATE TABLE premia(id_premii SERIAL, 
+			rodzaj VARCHAR NOT NULL, 
+			kwota NUMERIC(6, 2));
+
+   CREATE TABLE wynagrodzenie(id_wynagrodzenia SERIAL, 
+			data DATE NOT NULL, 
+			id_pracownika INTEGER NOT NULL, 
+			id_godziny INTEGER NOT NULL, 
+			id_pensji INTEGER NOT NULL, 
+			id_premii INTEGER NOT NULL);
+
+   ALTER TABLE pracownicy ADD PRIMARY KEY(id_pracownika);
+   ALTER TABLE godziny ADD PRIMARY KEY(id_godziny);
+   ALTER TABLE pensja_stanowisko ADD PRIMARY KEY(id_pensji);
+   ALTER TABLE premia ADD PRIMARY KEY(id_premii);
+   ALTER TABLE wynagrodzenie ADD PRIMARY KEY(id_wynagrodzenia);
+
+   ALTER TABLE godziny 
+   ADD CONSTRAINT godziny_pracownik 
+   FOREIGN KEY(id_pracownika) 
+   REFERENCES pracownicy(id_pracownika);
+
+   ALTER TABLE wynagrodzenie
+   ADD CONSTRAINT wynagrodzenie_pracownik
+   FOREIGN KEY(id_pracownika)
+   REFERENCES pracownicy(id_pracownika);
+
+   ALTER TABLE wynagrodzenie
+   ADD CONSTRAINT wynagrodzenie_godzina
+   FOREIGN KEY(id_godziny)
+   REFERENCES godziny(id_godziny);
+
+   ALTER TABLE wynagrodzenie
+   ADD CONSTRAINT wynagrodzenie_pensja
+   FOREIGN KEY(id_pensji)
+   REFERENCES pensja_stanowisko(id_pensji);
+   
+   ALTER TABLE wynagrodzenie
+   ADD CONSTRAINT wynagrodzenie_premia
+   FOREIGN KEY(id_premii)
+   REFERENCES premia(id_premii);
+
+   CREATE INDEX index_pracownicy ON pracownicy USING BTREE(id_pracownika);
+   CREATE INDEX index_godziny ON godziny USING BTREE(id_godziny);
+   CREATE INDEX index_pensja_stanowisko ON pensja_stanowisko USING BTREE(id_pensji);
+   CREATE INDEX index_wynagrodzenie ON wynagrodzenie USING BTREE(id_wynagrodzenia);
+   CREATE INDEX index_premia ON premia USING BTREE(id_premii);
+
+   COMMENT ON COLUMN premia.id_premii IS 'to jest klucz dla tabeli premia';
+
+
+5. INSERT INTO pracownicy
+   VALUES(1, 'Marek', 'Jarek', 'sample adress', '123456789');
+
+   ALTER TABLE godziny
+   ADD week DATE
+   ADD month DATE;
+
+   ALTER TABLE wynagrodzenie
+   ALTER COLUMN data TYPE VARCHAR;
+
+
+6. SELECT id_pracownika, nazwisko FROM pracownicy;
+
+   SELECT * FROM pracownicy WHERE imie LIKE 'J%';
+
+   SELECT * FROM pracownicy WHERE nazwisko LIKE '%n%' AND imie LIKE '%a';
+
+   SELECT pracownicy.imie, pracownicy.nazwisko, godziny.liczba_godzin-160 AS nadgodziny FROM pracownicy INNER JOIN godziny ON pracownicy.id_pracownika=godziny.id_pracownika;
+
+   SELECT wynagrodzenie.id_pracownika, pensja_stanowisko.kwota FROM wynagrodzenie INNER JOIN pensja_stanowisko ON wynagrodzenie.id_pensji=pensja_stanowisko.id_pensji WHERE pensja_stanowisko.kwota > 1500 and pensja_stanowisko.kwota < 3000;
+
+   SELECT wynagrodzenie.id_pracownika FROM wynagrodzenie INNER JOIN pensja_stanowisko ON wynagrodzenie.id_pensji=pensja_stanowisko.id_pensji ORDER BY pensja_stanowisko.kwota DESC;
+
+   SELECT wynagrodzenie.id_pracownika FROM wynagrodzenie INNER JOIN pensja_stanowisko ON wynagrodzenie.id_pensji=pensja_stanowisko.id_pensji INNER JOIN premia ON wynagrodzenie.id_premii=premia.id_premii ORDER BY pensja_stanowisko.kwota, premia.kwota DESC;
