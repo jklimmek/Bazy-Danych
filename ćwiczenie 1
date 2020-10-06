@@ -96,6 +96,7 @@
 
    SELECT wynagrodzenie.id_pracownika, pensja_stanowisko.kwota FROM wynagrodzenie INNER JOIN pensja_stanowisko ON wynagrodzenie.id_pensji=pensja_stanowisko.id_pensji WHERE pensja_stanowisko.kwota > 1500 and pensja_stanowisko.kwota < 3000;
 
-   SELECT wynagrodzenie.id_pracownika FROM wynagrodzenie INNER JOIN pensja_stanowisko ON wynagrodzenie.id_pensji=pensja_stanowisko.id_pensji ORDER BY pensja_stanowisko.kwota DESC;
+
+7. SELECT wynagrodzenie.id_pracownika FROM wynagrodzenie INNER JOIN pensja_stanowisko ON wynagrodzenie.id_pensji=pensja_stanowisko.id_pensji ORDER BY pensja_stanowisko.kwota DESC;
 
    SELECT wynagrodzenie.id_pracownika FROM wynagrodzenie INNER JOIN pensja_stanowisko ON wynagrodzenie.id_pensji=pensja_stanowisko.id_pensji INNER JOIN premia ON wynagrodzenie.id_premii=premia.id_premii ORDER BY pensja_stanowisko.kwota, premia.kwota DESC;
