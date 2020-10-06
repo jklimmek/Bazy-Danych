@@ -74,7 +74,7 @@
 
    COMMENT ON COLUMN premia.id_premii IS 'to jest klucz dla tabeli premia';
 
-
+   --przykładowy insert
 5. INSERT INTO pracownicy
    VALUES(1, 'Marek', 'Jarek', 'sample adress', '123456789');
 
@@ -84,9 +84,15 @@
 
    ALTER TABLE wynagrodzenie
    ALTER COLUMN data TYPE VARCHAR;
+   
+   UPDATE premia SET kwota=0 WHERE rodzaj='brak';
 
 
 6. SELECT id_pracownika, nazwisko FROM pracownicy;
+
+   SELECT wynagrodzenie.id_pracownika FROM wynagrodzenie, pensja_stanowisko WHERE wynagrodzenie.id_pensji=pensja_stanowisko.id_pensji AND pensja_stanowisko.kwota>1000;
+   
+   SELECT id_pracownika FROM wynagrodzenie, pensja_stanowisko, premia WHERE wynagrodzenie.id_pensji=pensja_stanowisko.id_pensji AND wynagrodzenie.id_premii=premia.id_premii AND premia.kwota=0 AND pensja_stanowisko.kwota>2000;
 
    SELECT * FROM pracownicy WHERE imie LIKE 'J%';
 
@@ -94,9 +100,22 @@
 
    SELECT pracownicy.imie, pracownicy.nazwisko, godziny.liczba_godzin-160 AS nadgodziny FROM pracownicy INNER JOIN godziny ON pracownicy.id_pracownika=godziny.id_pracownika;
 
-   SELECT wynagrodzenie.id_pracownika, pensja_stanowisko.kwota FROM wynagrodzenie INNER JOIN pensja_stanowisko ON wynagrodzenie.id_pensji=pensja_stanowisko.id_pensji WHERE pensja_stanowisko.kwota > 1500 and pensja_stanowisko.kwota < 3000;
+   SELECT wynagrodzenie.id_pracownika, pensja_stanowisko.kwota FROM wynagrodzenie INNER JOIN pensja_stanowisko ON wynagrodzenie.id_pensji=pensja_stanowisko.id_pensji WHERE pensja_stanowisko.kwota>1500 and pensja_stanowisko.kwota<3000;
+   
+   SELECT imie, nazwisko FROM pracownicy, wynagrodzenie, godziny, premia WHEREpracownicy.id_pracownika=wynagrodzenie.id_pracownika AND wynagrodzenie.id_godziny=godziny.id_godziny AND wynagrodzenie.id_premii=premia.id_premii AND godziny.liczba_godzin-160>0 AND premia.kwota=0;
 
 
-7. SELECT wynagrodzenie.id_pracownika FROM wynagrodzenie INNER JOIN pensja_stanowisko ON wynagrodzenie.id_pensji=pensja_stanowisko.id_pensji ORDER BY pensja_stanowisko.kwota DESC;
+7. SELECT imie, nazwisko FROM pracownicy, wynagrodzenie, pensja_stanowisko WHERE wynagrodzenie.id_pracownika=pracownicy.id_pracownika AND wynagrodzenie.id_pensji=pensja_stanowisko.id_pensji  ORDER BY pensja_stanowisko.kwota;
 
-   SELECT wynagrodzenie.id_pracownika FROM wynagrodzenie INNER JOIN pensja_stanowisko ON wynagrodzenie.id_pensji=pensja_stanowisko.id_pensji INNER JOIN premia ON wynagrodzenie.id_premii=premia.id_premii ORDER BY pensja_stanowisko.kwota, premia.kwota DESC;
+   SELECT imie, nazwisko FROM pracownicy, wynagrodzenie, pensja_stanowisko WHERE wynagrodzenie.id_pracownika=pracownicy.id_pracownika AND wynagrodzenie.id_pensji=pensja_stanowisko.id_pensji  ORDER BY (pensja_stanowisko.kwota, premia.kwota) DESC;
+   
+   SELECT stanowisko, COUNT(wynagrodzenie.id_pensji) FROM pensja_stanowisko, wynagrodzenie WHERE wynagrodzenie.id_pensji=pensja_stanowisko.id_pensji GROUP BY pensja_stanowisko.stanowisko;
+   
+   
+8. UPDATE pracownicy SET telefon=CONCAT('(+48)', telefon);
+
+   UPDATE pracownicy SET telefon=CONCAT(SUBSTRING(telefon, 1, 3), '-', SUBSTRING(telefon, 4, 3), '-', SUBSTRING(telefon, 7, 4));
+   
+   SELECT UPPER(imie), UPPER(nazwisko) FROM pracownicy WHERE (LENGTH(pracownicy.nazwisko))=(SELECT MAX(LENGTH(pracownicy.nazwisko)) FROM pracownicy);
+   
+   SELECT MD5(pracownicy.imie||pracownicy.nazwisko||pracownicy.adres||pracownicy.telefon||pensja_stanowisko.kwota) FROM pracownicy, wynagrodzenie, pensja_stanowisko WHERE pracownicy.id_pracownika=wynagrodzenie.id_pracownika AND wynagrodzenie.id_pensji=pensja_stanowisko.id_pensji;
