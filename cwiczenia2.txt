@@ -1,0 +1,238 @@
+1.	CREATE SCHEMA firma;
+	SET search_path TO firma;
+
+	CREATE TABLE firma.pracownicy(id_pracownika SERIAL, 
+		imie VARCHAR NOT NULL, 
+		nazwisko VARCHAR NOT NULL, 
+		adres VARCHAR NOT NULL, 
+		telefon VARCHAR);
+
+   	CREATE TABLE firma.godziny(id_godziny SERIAL, 
+		data DATE NOT NULL, 
+		liczba_godzin INTEGER NOT NULL, 
+		id_pracownika INTEGER NOT NULL);
+
+   	REATE TABLE firma.pensja_stanowisko(id_pensji SERIAL, 
+		stanowisko VARCHAR NOT NULL, 
+		kwota NUMERIC(6, 2));
+
+   	CREATE TABLE firma.premia(id_premii SERIAL, 
+		rodzaj VARCHAR NOT NULL, 
+		kwota NUMERIC(6, 2));
+
+   	CREATE TABLE firma.wynagrodzenie(id_wynagrodzenia SERIAL, 
+		data DATE NOT NULL, 
+		id_pracownika INTEGER NOT NULL, 
+		id_godziny INTEGER NOT NULL, 
+		id_pensji INTEGER NOT NULL, 
+		id_premii INTEGER NOT NULL);
+
+   	ALTER TABLE pracownicy ADD PRIMARY KEY(id_pracownika);
+   	ALTER TABLE godziny ADD PRIMARY KEY(id_godziny);
+   	ALTER TABLE pensja_stanowisko ADD PRIMARY KEY(id_pensji);
+   	ALTER TABLE premia ADD PRIMARY KEY(id_premii);
+   	ALTER TABLE wynagrodzenie ADD PRIMARY KEY(id_wynagrodzenia);
+
+	ALTER TABLE firma.godziny 
+   	ADD CONSTRAINT godziny_pracownik 
+   	FOREIGN KEY(id_pracownika) 
+   	REFERENCES pracownicy(id_pracownika)
+   	ON DELETE  CASCADE  
+   	NOT DEFERRABLE 
+   	INITIALLY IMMEDIATE;
+
+   	ALTER TABLE firma.wynagrodzenie
+   	ADD CONSTRAINT wynagrodzenie_pracownik
+   	FOREIGN KEY(id_pracownika)
+   	REFERENCES pracownicy(id_pracownika)
+   	ON DELETE  CASCADE  
+   	NOT DEFERRABLE 
+   	INITIALLY IMMEDIATE;
+
+  	 ALTER TABLE firma.wynagrodzenie
+   	ADD CONSTRAINT wynagrodzenie_godzina
+   	FOREIGN KEY(id_godziny)
+   	REFERENCES godziny(id_godziny)
+   	ON DELETE  CASCADE  
+   	NOT DEFERRABLE 
+   	INITIALLY IMMEDIATE;
+
+   	ALTER TABLE firma.wynagrodzenie
+   	ADD CONSTRAINT wynagrodzenie_pensja
+   	FOREIGN KEY(id_pensji)
+   	REFERENCES pensja_stanowisko(id_pensji)
+   	ON DELETE  CASCADE  
+   	NOT DEFERRABLE 
+   	INITIALLY IMMEDIATE;
+   
+   	ALTER TABLE firma.wynagrodzenie
+  	ADD CONSTRAINT wynagrodzenie_premia
+  	FOREIGN KEY(id_premii)
+  	REFERENCES premia(id_premii)
+   	ON DELETE  CASCADE  
+   	NOT DEFERRABLE 
+   	INITIALLY IMMEDIATE;
+
+
+2.      CREATE SCHEMA sklep;
+	SET search_path TO sklep;
+
+
+3.	CREATE TABLE sklep.produkty(
+		id_produktu SERIAL NOT NULL,
+		nazwa_produktu VARCHAR NOT NULL,
+		mail VARCHAR NOT NULL,
+		cena DECIMAL(5,2) NOT NULL,
+		id_producenta VARCHAR NOT NULL,
+		CONSTRAINT produkty_key PRIMARY KEY(id_produktu,
+		INITIALLY IMMEDIATE,
+		NOT DEFERRABLE));
+
+	CREATE TABLE sklep.producenci(
+		id_producenta SERIAL NOT NULL,
+		nazwa_producenta VARCHAR NOT NULL,
+		mail VARCHAR NOT NULL,
+		telefon VARCHAR NOT NULL,
+		CONSTRAINT producenci_key PRIMARY KEY(id_producenta),
+		INITIALLY IMMEDIATE,
+		NOT DEFERRABLE);
+
+
+4.	CREATE TABLE sklep.zamowienia(
+		id_zamowienia SERIAL NOT NULL.
+		id_producenta VARCHAR NOT NULL,
+		id_produktu VARCHAR NOT NULL,
+		ilosc_zamowien INT NOT NULL;
+	date date not null
+		CONSTRAINT zamowienia_key PRIMARY KEY(id_zamowienia),
+		INITIALLY IMMEDIATE,
+		NOT DEFERRABLE);
+
+	-- indeksy
+	CREATE INDEX produkty_idx ON sklep.produkty(id_produktu);
+	CREATE INDEX producenci_idx ON sklep.producenci(id_producenta);
+	CREATE INDEX zamowienia_idx ON sklep.zamowienia(id_zamowienia);
+
+	-- relacje
+	ALTER TABLE sklep.produkty ADD CONSTRAINT produkty_producenci FOREIGN KEY(id_producenta) REFERENCES sklep.producenci(id_producenta) ON DELETE CASCADE;
+	ALTER TABLE sklep.zamowienia ADD CONSTRAINT zamowienia_producenci FOREIGN KEY(id_producenta) REFERENCES sklep.producenci(id_producenta) ON DELETE CASCADE;
+	ALTER TABLE sklep.zamowienia ADD CONSTRAINT zamowienia_produkty FOREIGN KEY(id_produktu) REFERENCES sklep.produkty(id_produktu) ON DELETE CASCADE;
+
+
+5.	\i /ścieżka/do/pliku/sklep.sql
+
+
+	-- przykladowy insert (zakladamy ze producent o tym id zostal juz wpisany do bazy)
+6.	INSERT INTO produkty(nazwa_produktu, cena, id_producenta)
+	VALUES('przykladowy produkt 2', 34.99, '123456789');
+
+
+7.	su -postgres
+	pg_dump s298251 > s298251.bak
+
+
+8.	dropdb s298251
+
+
+9	createdb backup298251
+	psql backup298251 < s298251.bak
+
+
+10.	ALTER DATABASE "backup298251" RENAME TO "s298251";
+
+
+11.	SELECT Producent: ' || nazwa_producenta || 'liczba zamowien: ' || ilosc_zamowien || 'wartosc zamowienia: ' || ilosc_zamowien*cena AS Raport FROM zamowienia
+	INNER JOIN produkty ON produkty.id_produktu=zamowienia.id_produktu INNER JOIN producenci ON producenci.id_producenta=zamowienia.id_producenta;
+
+	SELECT 'Produkt: ' || nazwa_produktu || 'liczba zamowien: ' || SUM(ilosc_zamowien) AS Raport FROM zamowienia
+	INNER JOIN produkty ON produkty.id_produktu=zamowienia.id_produktu INNER JOIN producenci ON producenci.id_producenta=zamowienia.id_producenta;
+
+	SELECT * FROM produkty NATURAL JOIN ON zamowienia;
+
+	ALTER TABLE zamowienia ADD data DATE;
+
+	SELECT * FROM zamowienia WHERE EXTRACT(MONTH FROM data) = '01';
+
+	SELECT EXTRACT(DAY FROM data) FROM zamowienia INNER JOIN produkty ON zamowienia.id_produktu=produkty.id_produktu WHERE cena*ilosc_zamowien=(SELECT MAX(cena*ilosc_zamowien) FROM zamowienia INNER JOIN produkty ON zamowienia.id_produktu=produkty.id_produktu);
+
+	
+12.	SELECT 'Produkt: ' || UPPER(nazwa_produktu) || 'ktorego producentem jest: ' || LOWER(nazwa_producenta) || 'zamowiono: ' || SUM(ilosc_zamowien) || 'razy' AS Opis FROM zamowienia
+	INNER JOIN produkty ON produkty.id_produktu=zamowienia.id_produktu INNER JOIN producenci ON producenci.id_producenta=zamowienia.id_producenta GROUP BY nazwa_produktu, nazwa_producenta ORDER BY SUM(ilosc_zamowien) DESC;
+
+	SELECT nazwa_produktu, SUM(ilosc_zamowien*cena) AS total FROM zamowienia INNER JOIN produkty ON produkty.id_produktu=zamowienia.id_produktu
+	INNER JOIN producenci ON producenci.id_producenta=zamowienia.id_producenta GROUP BY nazwa_produktu ORDER BY SUM(total);
+
+	CREATE TABLE sklep.klienci(
+		id_klienta SERIAL NOT NULL,
+		nazwa_klienta VARCHAR NOT NULL,
+		mail VARCHAR NOT NULL,
+		telefon VARCHAR NOT NULL,
+		CONSTRAINT klienci_key PRIMARY KEY(id_klienta));
+
+	-- przykladowy insert
+	INSERT INTO klienci (nazwa_klienta, mail, telefon) 
+	VALUES ('jakis klient',  'samplemail@gmail.com',  '123456789'),
+
+	ALTER TABLE zamowienia ADD COLUMN id_klienta VARCHAR NOT NULL DEFAULT '0';
+
+	SELECT nazwa_klienta, nazwa_produktu, ilosc_zamowien, SUM(ilosc_zamowien*cena) AS wartosc_zamowienia FROM zamowienia
+	INNER JOIN produkty ON produkty.id_produktu=zamowienia.id_produktu INNER JOIN producenci ON producenci.id_producenta=zamowienia.id_producenta
+	INNER JOIN klienci ON klienci.id_klienta=zamowienia.id_klienta GROUP BY nazwa_klienta, nazwa_produktu, ilosc_zamowien;
+
+	DELETE FROM produkty WHERE id_produktu IN (SELECT produkty.id_produktu FROM produkty WHERE id_produktu NOT IN (SELECT id_produktu FROM zamowienia));
+
+
+13.	CREATE TABLE sklep.numer(liczba SMALLINT);
+
+	CREATE SEQUENCE liczba_seq
+	START 100
+	MINVALUE 0
+	MAXVALUE 125
+	INCREMENT 5
+	CYCLE
+	OWNED BY numer.liczba;
+
+	-- przykladowy insert
+	INSERT INTO numer(liczba) VALUES (NEXTVAL('liczba_seq'))
+
+	ALTER SEQUENCE liczba_seq INCREMENT BY 6;
+
+	SELECT LAST_VALUE FROM liczba_seq;
+	SELECT NEXTVAL('liczba_seq');
+
+	DROP SEQUENCE liczba_seq;
+
+
+14.	SELECT rolname FROM pg_roles;
+
+	CREATE USER Superuser298251 WITH PASSWORD 'admin1' SUPERUSER;
+	CREATE USER Guest298251 WITH PASSWORD 'admin2';
+	GRANT CONNECT ON DATABASE s298251 TO Guest298251;
+	GRANT USAGE ON SCHEMA sklep TO Guest298251;
+	GRANT SELECT ON ALL TABLES IN SCHEMA sklep TO Guest298251;
+
+
+	ALTER ROLE Superuser298251 RENAME TO student;
+	ALTER ROLE student NOSUPERUSER;
+	GRANT CONNECT ON DATABASE s298251 TO student;
+	GRANT USAGE ON SCHEMA sklep TO student;
+	GRANT SELECT ON ALL TABLES IN SCHEMA sklep TO student;
+	REASSIGN OWNED BY Guest298251 TO postgres;
+	DROP OWNED BY Guest298251;
+	DROP USER Guest298251;
+
+
+15.	BEGIN;
+	UPDATE produkty SET cena=cena+10.00;
+	COMMIT;
+
+	BEGIN;
+	UPDATE produkty SET cena = cena*1.1 WHERE id_produktu=3;
+	SAVEPOINT S1;
+	UPDATE zamowienia SET ilosc_zamowien = ilosc_zamowien*1.25;
+	SAVEPOINT S2;
+	DELETE FROM klienci WHERE id_klienta IN (SELECT zamowienia.id_klienta FROM klienci INNER JOIN zamowienia ON zamowienia.id_klienta = klienci.id_klienta 
+	GROUP BY zamowienia.id_klienta ORDER BY zamowienia.id_klienta DESC LIMIT 1);
+	ROLLBACK TO SAVEPOINT S1;
+	ROLLBACK;
+	
