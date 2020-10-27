@@ -1,0 +1,10 @@
+4.	CREATE TABLE tableB AS SELECT popp.gid, popp.cat, popp.f_codedesc, popp.f_code, popp.type, popp.geom 
+	FROM popp, majrivers GROUP BY popp.gid HAVING popp.f_codedesc='Building' AND MIN(ST_Distance(majrivers.geom, popp.geom)) < 100000;
+
+5.	CREATE TABLE airportsNew AS SELECT name, geom, elev FROM airports;
+
+	SELECT MIN(ST_Y(geom)), MAX(ST_Y(geom)) FROM airportsNew;
+
+6	SELECT ST_Area(ST_Buffer((SELECT ST_ShortestLine(lakes.geom, airports.geom) FROM lakes, airports 
+	WHERE lakes.names = 'Iliamna Lake' AND airports.name = 'AMBLER'), 1000));
+
