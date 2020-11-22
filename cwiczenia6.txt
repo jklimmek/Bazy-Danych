@@ -1,0 +1,34 @@
+1.	Zmiana koloru dla poszczególnych lasów:
+	Styl we właściwościach dla warstwy trees. Wybieramy opcję vegdesc, klasyfikuj i ustawiamy wybrane kolory.
+	
+	Pole powierzchni lasów mieszanych:
+	Wybieramy warstwę trees i ustawiamy funkcję sum(AREA_KM2) i klikamy calculate: 189273.32699999996
+
+2.	Klikamy w menu wektor -> narzędzia zarządzania danymi -> podziel warstwę wektorową i wybieramy warstwę trees.
+
+3.	WYkonujemy iloczyn warstw regions z railroads aby uzyskać część wspólną i zapisujemy w nowej warstwie,
+	a następnie kalkulatorem pól obliczamy sum(length): 268212.65083772107
+
+4.	W warstwie airports filtrujemy po kolumnie USE -- szukane wartości to Military -- otrzymujemy wynik: 8 lotnisk militarnych
+	Aby otrzymać średnią wysokość n.p.m dla lotnisk militarnych w kalkulatorze pól wpisujemy funckję mean(ELEV): 593.25
+	Usuwanie lotnisk powyżej 1400m n.p.m: zaznaczamy wyrażeniem ELEV > 1400, wybieramy opcję 'show selected on map', 
+	włączamy tryb edycji i usuwamy zaznaczone obiekty.
+
+5.	Zaznaczamy obszar w regions wyrażeniem NAME_2 = 'Bristol Bay', następnie wykonujemy iloczn z warstwą ppop, otrzymujemy wynik: 11 budynków
+	Budynki oddalone o 100km od rzek: wykonujemy buffer dla warstwy z rzekami o odległości 100km,
+	następnie wykonujemy iloczyn powstałego bufora z warstwą zawierającą budynki w Bristol Bay, co daje wynik: 11 budynków
+
+6.	Wchodzimy w wektor -> narzędzia analizy -> przecięcia linii, warstwa źródłowa: majrivers, warstwa przecinająca: railroads, 
+	wynik: 8 przecięć.
+
+7.	Wchodzimy w wektor -> narzędzia geometrii -> wydobądź wierzchołki, warstwa źródłowa: railroads, wynik: 662 węzły
+
+8.	Tworzymy trzy bufory: 
+		bufor1 dla warstwy airports z odległością:  100km
+		bufor2 dla warstwy railroads z odległością:  50km
+		bufor3 dla warstwy trails z odległością:     20km
+	Następnie tworzymy iloczyn ze wszystkich buforów i powstała warstwa to dogodne miejsca do budowy hotelu
+
+9.	Wchodzimy w wektor -> narzędzie geometrii -> uprość geometrię , warstwa źródłowa: swamp.
+	Po uproszczeniu geometrii liczba wierzchołków zmalała o: 1294, pole pozostało identyczne 
+
